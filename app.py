@@ -330,6 +330,46 @@ def export_csv():
     return response
 
 
+def parse_csv_row(row):
+    """
+    CSV の列名に応じて顧客データを取り出す。
+    通常フォーマット（顧客名,会社名,...）と
+    Zoho CRM フォーマット（取引先名,電話番号,...）の両方に対応。
+    """
+    # Zoho CRM フォーマット判定
+    if '取引先名' in row:
+        # 住所を結合（都道府県 + 市区町村 + 町名・番地）
+        address_parts = [
+            row.get('都道府県（請求先）', ''),
+            row.get('市区町村（請求先）', ''),
+            row.get('町名・番地（請求先）', ''),
+        ]
+        address = ''.join(p for p in address_parts if p.strip())
+
+        # メモは詳細情報と備考を結合
+        memo_parts = [row.get('詳細情報', ''), row.get('備考', '')]
+        memo = ' / '.join(p for p in memo_parts if p.strip())
+
+        return {
+            'name':    row.get('取引先名', ''),
+            'company': row.get('取引先名', ''),
+            'phone':   row.get('電話番号', ''),
+            'email':   row.get('メールアドレス', ''),
+            'address': address,
+            'memo':    memo,
+        }
+
+    # 通常フォーマット
+    return {
+        'name':    row.get('顧客名', ''),
+        'company': row.get('会社名', ''),
+        'phone':   row.get('電話', ''),
+        'email':   row.get('メール', ''),
+        'address': row.get('住所', ''),
+        'memo':    row.get('メモ', ''),
+    }
+
+
 @app.route('/customers/import', methods=['POST'])
 @login_required
 def import_csv():
@@ -340,9 +380,9 @@ def import_csv():
 
     raw = file.stream.read()
 
-    # UTF-8（BOMあり）→ Shift-JIS → UTF-8 の順に試す
+    # UTF-8（BOMあり）→ CP932（Windows日本語）→ Shift-JIS → UTF-8 の順に試す
     text = None
-    for encoding in ('utf-8-sig', 'shift_jis', 'utf-8'):
+    for encoding in ('utf-8-sig', 'cp932', 'shift_jis', 'utf-8'):
         try:
             text = raw.decode(encoding)
             break
@@ -355,16 +395,25 @@ def import_csv():
 
     reader = csv.DictReader(io.StringIO(text))
     count  = 0
+    skip   = 0
     with get_db() as conn:
         for row in reader:
+            data = parse_csv_row(row)
+            if not data['name'].strip():  # 顧客名が空の行はスキップ
+                skip += 1
+                continue
             conn.execute(
                 'INSERT INTO customers (name, company, phone, email, address, memo) VALUES (?, ?, ?, ?, ?, ?)',
-                (row.get('顧客名', ''), row.get('会社名', ''), row.get('電話', ''),
-                 row.get('メール', ''), row.get('住所', ''), row.get('メモ', ''))
+                (data['name'], data['company'], data['phone'],
+                 data['email'], data['address'], data['memo'])
             )
             count += 1
         conn.commit()
-    flash(f'{count} 件の顧客をインポートしました', 'success')
+
+    msg = f'{count} 件の顧客をインポートしました'
+    if skip:
+        msg += f'（{skip} 件は顧客名が空のためスキップ）'
+    flash(msg, 'success')
     return redirect(url_for('customers'))
 
 
