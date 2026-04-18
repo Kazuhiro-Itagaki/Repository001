@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3">
+  <a href="{{ url_for('customers') }}" class="btn btn-outline-secondary btn-sm me-2">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h5 class="mb-0">{{ title }}</h5>
+</div>
+
+<div class="card" style="max-width: 600px;">
+  <div class="card-body">
+    <form method="POST">
+
+      <div class="mb-3">
+        <label class="form-label fw-bold">顧客名 <span class="text-danger">*</span></label>
+        <input type="text" name="name" class="form-control"
+               value="{{ customer.name if customer else '' }}" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">会社名</label>
+        <input type="text" name="company" class="form-control"
+               value="{{ customer.company if customer else '' }}">
+      </div>
+
+      <div class="row">
+        <div class="col mb-3">
+          <label class="form-label">電話番号</label>
+          <input type="tel" name="phone" class="form-control"
+                 value="{{ customer.phone if customer else '' }}">
+        </div>
+        <div class="col mb-3">
+          <label class="form-label">メールアドレス</label>
+          <input type="email" name="email" class="form-control"
+                 value="{{ customer.email if customer else '' }}">
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">住所</label>
+        <input type="text" name="address" class="form-control"
+               value="{{ customer.address if customer else '' }}">
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">メモ</label>
+        <textarea name="memo" class="form-control" rows="3">{{ customer.memo if customer else '' }}</textarea>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-circle"></i> 保存する
+        </button>
+        <a href="{{ url_for('customers') }}" class="btn btn-outline-secondary">キャンセル</a>
+
+        <!-- 削除ボタン（編集時のみ表示） -->
+        {% if customer %}
+        <form method="POST" action="{{ url_for('delete_customer', id=customer.id) }}"
+              class="ms-auto"
+              onsubmit="return confirm('この顧客を削除しますか？\n案件・連絡履歴もすべて削除されます。')">
+          <button type="submit" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-trash"></i> 削除
+          </button>
+        </form>
+        {% endif %}
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

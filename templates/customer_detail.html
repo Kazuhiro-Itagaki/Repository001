@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}{{ customer.name }}{% endblock %}
+
+{% block content %}
+
+<!-- 顧客ヘッダー -->
+<div class="d-flex align-items-center mb-3">
+  <a href="{{ url_for('customers') }}" class="btn btn-outline-secondary btn-sm me-2">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h5 class="mb-0">{{ customer.name }}</h5>
+  <a href="{{ url_for('edit_customer', id=customer.id) }}" class="btn btn-outline-primary btn-sm ms-3">
+    <i class="bi bi-pencil"></i> 編集
+  </a>
+</div>
+
+<div class="row g-3">
+
+  <!-- 左カラム：顧客情報 -->
+  <div class="col-md-4">
+    <div class="card">
+      <div class="card-header bg-light fw-bold">
+        <i class="bi bi-person"></i> 基本情報
+      </div>
+      <div class="card-body">
+        <table class="table table-sm table-borderless mb-0">
+          <tr><th class="text-muted" style="width:80px">会社名</th><td>{{ customer.company or '-' }}</td></tr>
+          <tr><th class="text-muted">電話</th><td>{{ customer.phone or '-' }}</td></tr>
+          <tr><th class="text-muted">メール</th><td>{{ customer.email or '-' }}</td></tr>
+          <tr><th class="text-muted">住所</th><td>{{ customer.address or '-' }}</td></tr>
+          <tr><th class="text-muted">登録日</th><td>{{ customer.created_at[:10] }}</td></tr>
+        </table>
+        {% if customer.memo %}
+        <hr>
+        <p class="text-muted small mb-0">{{ customer.memo }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 右カラム：案件・連絡履歴 -->
+  <div class="col-md-8">
+
+    <!-- 案件一覧 -->
+    <div class="card mb-3">
+      <div class="card-header bg-light d-flex justify-content-between align-items-center">
+        <span class="fw-bold"><i class="bi bi-briefcase"></i> 案件 ({{ deals|length }})</span>
+        <a href="{{ url_for('new_deal', customer_id=customer.id) }}" class="btn btn-primary btn-sm">
+          <i class="bi bi-plus"></i> 追加
+        </a>
+      </div>
+      <div class="card-body p-0">
+        {% if deals %}
+        <table class="table table-sm table-hover mb-0">
+          <thead><tr><th>案件名</th><th>ステータス</th><th>金額</th><th style="width:80px"></th></tr></thead>
+          <tbody>
+            {% for d in deals %}
+            <tr>
+              <td>{{ d.title }}</td>
+              <td>
+                <span class="badge badge-status-{{ d.status }}">{{ d.status }}</span>
+              </td>
+              <td>{{ '{:,}'.format(d.amount) }} 円</td>
+              <td>
+                <a href="{{ url_for('edit_deal', id=d.id) }}" class="btn btn-outline-primary btn-sm py-0">編集</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p class="text-muted text-center py-3 mb-0">案件はまだありません</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 連絡履歴 -->
+    <div class="card">
+      <div class="card-header bg-light fw-bold">
+        <i class="bi bi-chat-left-text"></i> 連絡履歴
+      </div>
+      <div class="card-body">
+
+        <!-- 新規記録フォーム -->
+        <form method="POST" action="{{ url_for('new_contact', customer_id=customer.id) }}" class="mb-3">
+          <div class="row g-2">
+            <div class="col-auto">
+              <input type="date" name="date" class="form-control form-control-sm"
+                     value="{{ now }}" required>
+            </div>
+            <div class="col">
+              <input type="text" name="content" class="form-control form-control-sm"
+                     placeholder="連絡内容を入力..." required>
+            </div>
+            <div class="col-auto">
+              <button type="submit" class="btn btn-success btn-sm">記録</button>
+            </div>
+          </div>
+        </form>
+
+        <!-- 履歴リスト -->
+        {% if contacts %}
+        <ul class="list-unstyled mb-0">
+          {% for c in contacts %}
+          <li class="d-flex align-items-start border-bottom py-2">
+            <div class="flex-grow-1">
+              <span class="badge bg-secondary me-2">{{ c.date }}</span>
+              {{ c.content }}
+              <span class="text-muted small ms-2">by {{ c.username or '不明' }}</span>
+            </div>
+            <form method="POST" action="{{ url_for('delete_contact', id=c.id) }}"
+                  onsubmit="return confirm('この履歴を削除しますか？')">
+              <button type="submit" class="btn btn-link btn-sm text-danger p-0 ms-2">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </form>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted text-center mb-0">連絡履歴はまだありません</p>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

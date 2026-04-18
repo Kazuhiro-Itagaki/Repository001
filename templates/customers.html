@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}顧客一覧{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h5 class="mb-0"><i class="bi bi-people"></i> 顧客一覧</h5>
+  <a href="{{ url_for('new_customer') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-circle"></i> 新規登録
+  </a>
+</div>
+
+<!-- 検索バー -->
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form method="GET" class="d-flex gap-2">
+      <input type="text" name="search" value="{{ search }}"
+             class="form-control form-control-sm" placeholder="顧客名・会社名・メール・電話で検索">
+      <button type="submit" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-search"></i> 検索
+      </button>
+      {% if search %}
+      <a href="{{ url_for('customers') }}" class="btn btn-outline-secondary btn-sm">クリア</a>
+      {% endif %}
+    </form>
+  </div>
+</div>
+
+<!-- CSVインポート -->
+<div class="card mb-3">
+  <div class="card-body py-2">
+    <form method="POST" action="{{ url_for('import_csv') }}" enctype="multipart/form-data"
+          class="d-flex align-items-center gap-2">
+      <span class="text-muted small"><i class="bi bi-upload"></i> CSVインポート:</span>
+      <input type="file" name="file" accept=".csv" class="form-control form-control-sm" style="max-width:250px">
+      <button type="submit" class="btn btn-outline-success btn-sm">取り込む</button>
+      <a href="{{ url_for('export_csv') }}" class="btn btn-outline-secondary btn-sm ms-auto">
+        <i class="bi bi-download"></i> CSVエクスポート
+      </a>
+    </form>
+  </div>
+</div>
+
+<!-- 顧客テーブル -->
+<div class="card">
+  <div class="card-body p-0">
+    {% if customers %}
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>顧客名</th>
+          <th>会社名</th>
+          <th>電話</th>
+          <th>メール</th>
+          <th>更新日</th>
+          <th style="width:80px"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in customers %}
+        <tr>
+          <td><a href="{{ url_for('customer_detail', id=c.id) }}">{{ c.name }}</a></td>
+          <td>{{ c.company or '-' }}</td>
+          <td>{{ c.phone or '-' }}</td>
+          <td>{{ c.email or '-' }}</td>
+          <td class="text-muted small">{{ c.updated_at[:10] }}</td>
+          <td>
+            <a href="{{ url_for('edit_customer', id=c.id) }}"
+               class="btn btn-outline-primary btn-sm py-0">編集</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <i class="bi bi-inbox fs-1"></i>
+      <p class="mt-2">顧客がまだ登録されていません</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<p class="text-muted small mt-2">{{ customers|length }} 件</p>
+{% endblock %}

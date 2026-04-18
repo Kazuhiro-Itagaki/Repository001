@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}{{ '案件編集' if deal else '案件登録' }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center mb-3">
+  <a href="{{ url_for('customer_detail', id=customer.id) }}" class="btn btn-outline-secondary btn-sm me-2">
+    <i class="bi bi-arrow-left"></i>
+  </a>
+  <h5 class="mb-0">
+    {{ '案件編集' if deal else '案件登録' }} ─ {{ customer.name }}
+  </h5>
+</div>
+
+<div class="card" style="max-width:500px;">
+  <div class="card-body">
+    <form method="POST">
+
+      <div class="mb-3">
+        <label class="form-label fw-bold">案件名 <span class="text-danger">*</span></label>
+        <input type="text" name="title" class="form-control"
+               value="{{ deal.title if deal else '' }}" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">ステータス</label>
+        <select name="status" class="form-select">
+          {% for s in ['提案中', '商談中', '受注', '失注', '完了'] %}
+          <option value="{{ s }}" {{ 'selected' if deal and deal.status == s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">金額（円）</label>
+        <input type="number" name="amount" class="form-control" min="0"
+               value="{{ deal.amount if deal else 0 }}">
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label">メモ</label>
+        <textarea name="memo" class="form-control" rows="3">{{ deal.memo if deal else '' }}</textarea>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-check-circle"></i> 保存する
+        </button>
+        <a href="{{ url_for('customer_detail', id=customer.id) }}"
+           class="btn btn-outline-secondary">キャンセル</a>
+
+        <!-- 削除ボタン（編集時のみ） -->
+        {% if deal %}
+        <form method="POST" action="{{ url_for('delete_deal', id=deal.id) }}" class="ms-auto"
+              onsubmit="return confirm('この案件を削除しますか？')">
+          <button type="submit" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-trash"></i> 削除
+          </button>
+        </form>
+        {% endif %}
+      </div>
+
+    </form>
+  </div>
+</div>
+{% endblock %}

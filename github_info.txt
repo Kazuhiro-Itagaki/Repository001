@@ -1,0 +1,30 @@
+================================================
+GitHub / Git 設定情報
+作成日: 2026-04-18
+================================================
+
+【Gitユーザー設定】
+名前    : Kazuhiro Itagaki
+メール  : k.itagaki@kannart.co.jp
+
+【リポジトリ情報】
+ローカルパス : C:\Users\itagaki\Desktop\TRY-Claude\customer-manager
+ブランチ     : master
+リモートURL  : 未設定（ローカルのみ）
+
+【コミット履歴】
+4e10faf  Add CLAUDE.md with architecture and setup guidance
+
+【未コミットファイル（未追跡）】
+- app.py
+- templates/
+- customers.db
+- __pycache__/
+
+【GitHubへプッシュする手順】
+1. https://github.com で新しいリポジトリを作成
+2. 以下のコマンドを実行:
+   git remote add origin https://github.com/<ユーザー名>/<リポジトリ名>.git
+   git push -u origin master
+
+================================================
