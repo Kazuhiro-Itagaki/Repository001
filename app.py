@@ -333,12 +333,27 @@ def export_csv():
 @app.route('/customers/import', methods=['POST'])
 @login_required
 def import_csv():
-    file   = request.files.get('file')
+    file = request.files.get('file')
     if not file:
         flash('ファイルを選択してください', 'danger')
         return redirect(url_for('customers'))
-    stream = io.StringIO(file.stream.read().decode('utf-8-sig'))
-    reader = csv.DictReader(stream)
+
+    raw = file.stream.read()
+
+    # UTF-8（BOMあり）→ Shift-JIS → UTF-8 の順に試す
+    text = None
+    for encoding in ('utf-8-sig', 'shift_jis', 'utf-8'):
+        try:
+            text = raw.decode(encoding)
+            break
+        except (UnicodeDecodeError, LookupError):
+            continue
+
+    if text is None:
+        flash('文字コードを認識できませんでした（UTF-8 または Shift-JIS のCSVを使用してください）', 'danger')
+        return redirect(url_for('customers'))
+
+    reader = csv.DictReader(io.StringIO(text))
     count  = 0
     with get_db() as conn:
         for row in reader:
